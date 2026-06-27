@@ -17,6 +17,14 @@ repositories {
 loom {
 	splitEnvironmentSourceSets()
 
+	runs {
+		client2 {
+			inherit client
+			configName = "Minecraft Client 2"
+			runDir = "run-client-2"
+		}
+	}
+
 	mods {
 		"breach" {
 			sourceSet sourceSets.main
