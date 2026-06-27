@@ -8,6 +8,7 @@ import dev.breach.content.block.BreachBlocks;
 import dev.breach.content.item.BreachItems;
 import dev.breach.gameplay.injury.BodyPart;
 import dev.breach.gameplay.injury.InjuryAttachment;
+import dev.breach.gameplay.injury.InjuryConstants;
 import dev.breach.gameplay.injury.InjuryManager;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -56,6 +57,18 @@ public final class BreachCommands {
 							player.getInventory().add(new net.minecraft.world.item.ItemStack(BreachItems.MEDKIT, 4));
 							player.getInventory().add(new net.minecraft.world.item.ItemStack(BreachBlocks.MEDICAL_BED, 1));
 							ctx.getSource().sendSuccess(() -> Component.literal("Added medkits and a medical bed."), true);
+							return 1;
+						}))
+				.then(Commands.literal("down")
+						.executes(ctx -> {
+							if (!BreachFeatures.INJURY_SYSTEM_ENABLED) {
+								ctx.getSource().sendFailure(Component.literal("Injury system is disabled."));
+								return 0;
+							}
+							ServerPlayer player = ctx.getSource().getPlayerOrException();
+							InjuryManager.damage(player, BodyPart.HEAD, InjuryConstants.MAX_PART_HEALTH);
+							InjuryManager.damage(player, BodyPart.CHEST, InjuryConstants.MAX_PART_HEALTH);
+							ctx.getSource().sendSuccess(() -> Component.literal("Triggered downed state."), true);
 							return 1;
 						})));
 	}

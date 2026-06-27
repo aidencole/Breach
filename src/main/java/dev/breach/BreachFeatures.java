@@ -6,7 +6,7 @@ package dev.breach;
  */
 public final class BreachFeatures {
 	/** When false, players use vanilla health, damage, and death. Injury HUD and downed flow are inactive. */
-	public static final boolean INJURY_SYSTEM_ENABLED = false;
+	public static final boolean INJURY_SYSTEM_ENABLED = true;
 
 	private BreachFeatures() {
 	}
