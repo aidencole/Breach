@@ -4,23 +4,35 @@ import dev.breach.BreachMod;
 import dev.breach.gameplay.medical.MedicalBedBlock;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.Identifier;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+
+import java.util.function.Function;
 
 public final class BreachBlocks {
 	public static final Block CHALLENGE_REVIVE = register(
 			"challenge_revive",
-			new ChallengeReviveBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.CONCRETE.pick(DyeColor.RED)))
+			ChallengeReviveBlock::new,
+			BlockBehaviour.Properties.of()
+					.mapColor(DyeColor.RED)
+					.strength(2.0f)
+					.sound(SoundType.STONE)
 	);
 
 	public static final MedicalBedBlock MEDICAL_BED = register(
 			"medical_bed",
-			new MedicalBedBlock(BlockBehaviour.Properties.ofFullCopy(Blocks.BED.pick(DyeColor.RED)))
+			MedicalBedBlock::new,
+			BlockBehaviour.Properties.of()
+					.mapColor(DyeColor.RED)
+					.strength(0.2f)
+					.sound(SoundType.WOOD)
+					.noOcclusion()
 	);
 
 	private BreachBlocks() {
@@ -30,10 +42,14 @@ public final class BreachBlocks {
 		BreachMod.LOGGER.info("Registered Breach blocks");
 	}
 
-	private static <T extends Block> T register(String path, T block) {
-		Identifier id = BreachMod.id(path);
-		Registry.register(BuiltInRegistries.BLOCK, id, block);
-		Registry.register(BuiltInRegistries.ITEM, id, new BlockItem(block, new Item.Properties()));
+	private static <T extends Block> T register(String path, Function<BlockBehaviour.Properties, T> factory, BlockBehaviour.Properties properties) {
+		ResourceKey<Block> blockKey = ResourceKey.create(Registries.BLOCK, BreachMod.id(path));
+		T block = factory.apply(properties.setId(blockKey));
+		Registry.register(BuiltInRegistries.BLOCK, blockKey, block);
+
+		ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, BreachMod.id(path));
+		BlockItem blockItem = new BlockItem(block, new Item.Properties().setId(itemKey).useBlockDescriptionPrefix());
+		Registry.register(BuiltInRegistries.ITEM, itemKey, blockItem);
 		return block;
 	}
 }
