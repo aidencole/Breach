@@ -22,17 +22,41 @@ function Ensure-Command($name, $wingetId) {
     }
 }
 
+function Get-Jdk25Path {
+    $candidates = @(
+        (Get-ChildItem "C:\Program Files\Microsoft\jdk-25*" -ErrorAction SilentlyContinue),
+        (Get-ChildItem "C:\Program Files\Eclipse Adoptium\jdk-25*" -ErrorAction SilentlyContinue)
+    ) | Where-Object { $_ } | Sort-Object Name -Descending
+
+    return $candidates | Select-Object -First 1
+}
+
+function Test-Java25Available {
+    $jdk = Get-Jdk25Path
+    if ($jdk) {
+        return $true
+    }
+
+    $previousPreference = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        $output = & java -version 2>&1 | Out-String
+        return $output -match 'version "25'
+    } finally {
+        $ErrorActionPreference = $previousPreference
+    }
+}
+
 Write-Host "`n=== Breach dev setup ===" -ForegroundColor Cyan
 
 Ensure-Command git "Git.Git"
 
-if (-not (Get-Command java -ErrorAction SilentlyContinue) -or (java -version 2>&1 | Select-String "25") -eq $null) {
+if (-not (Test-Java25Available)) {
     Write-Host "Installing JDK 25..." -ForegroundColor Yellow
     winget install --id Microsoft.OpenJDK.25 -e --accept-source-agreements --accept-package-agreements
 }
 
-$jdk = Get-ChildItem "C:\Program Files\Microsoft\jdk-25*" -ErrorAction SilentlyContinue |
-    Sort-Object Name -Descending | Select-Object -First 1
+$jdk = Get-Jdk25Path
 if (-not $jdk) {
     throw "JDK 25 not found after install. Restart PowerShell and run this script again."
 }
