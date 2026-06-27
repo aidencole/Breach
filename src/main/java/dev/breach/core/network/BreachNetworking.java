@@ -1,6 +1,8 @@
 package dev.breach.core.network;
 
 import dev.breach.core.network.payload.EventStateS2CPayload;
+import dev.breach.core.network.payload.InjurySyncS2CPayload;
+import dev.breach.gameplay.injury.InjuryData;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.MinecraftServer;
@@ -12,10 +14,15 @@ public final class BreachNetworking {
 
 	public static void registerPayloads() {
 		PayloadTypeRegistry.clientboundPlay().register(EventStateS2CPayload.TYPE, EventStateS2CPayload.CODEC);
+		PayloadTypeRegistry.clientboundPlay().register(InjurySyncS2CPayload.TYPE, InjurySyncS2CPayload.CODEC);
 	}
 
 	public static void registerClientReceivers() {
-		// Additional client-bound payloads register here.
+		// Handled in BreachClient
+	}
+
+	public static void sendInjury(ServerPlayer player, InjuryData data) {
+		ServerPlayNetworking.send(player, new InjurySyncS2CPayload(data));
 	}
 
 	public static void broadcastEventState(MinecraftServer server, EventStateS2CPayload payload) {

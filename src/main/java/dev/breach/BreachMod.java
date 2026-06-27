@@ -6,6 +6,7 @@ import dev.breach.content.entity.BreachEntities;
 import dev.breach.content.item.BreachItems;
 import dev.breach.core.event.EventSessionManager;
 import dev.breach.core.network.BreachNetworking;
+import dev.breach.gameplay.BreachGameplay;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
@@ -25,6 +26,7 @@ public final class BreachMod implements ModInitializer {
 		BreachEntities.register();
 		BreachDimensions.register();
 		EventSessionManager.init();
+		BreachGameplay.init();
 
 		LOGGER.info("Breach core systems registered");
 	}
