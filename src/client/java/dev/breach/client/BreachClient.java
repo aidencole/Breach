@@ -20,7 +20,4 @@ public final class BreachClient implements ClientModInitializer {
 
 		BreachNetworking.registerClientReceivers();
 	}
-
-	private BreachClient() {
-	}
 }
