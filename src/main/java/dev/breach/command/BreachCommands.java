@@ -6,9 +6,9 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import dev.breach.BreachFeatures;
 import dev.breach.content.block.BreachBlocks;
 import dev.breach.content.item.BreachItems;
+import dev.breach.gameplay.downed.DownedController;
 import dev.breach.gameplay.injury.BodyPart;
 import dev.breach.gameplay.injury.InjuryAttachment;
-import dev.breach.gameplay.injury.InjuryConstants;
 import dev.breach.gameplay.injury.InjuryManager;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -61,13 +61,12 @@ public final class BreachCommands {
 						}))
 				.then(Commands.literal("down")
 						.executes(ctx -> {
-							if (!BreachFeatures.INJURY_SYSTEM_ENABLED) {
-								ctx.getSource().sendFailure(Component.literal("Injury system is disabled."));
+							if (!BreachFeatures.DOWNED_SYSTEM_ENABLED) {
+								ctx.getSource().sendFailure(Component.literal("Downed system is disabled."));
 								return 0;
 							}
 							ServerPlayer player = ctx.getSource().getPlayerOrException();
-							InjuryManager.damage(player, BodyPart.HEAD, InjuryConstants.MAX_PART_HEALTH);
-							InjuryManager.damage(player, BodyPart.CHEST, InjuryConstants.MAX_PART_HEALTH);
+							DownedController.downPlayer(player);
 							ctx.getSource().sendSuccess(() -> Component.literal("Triggered downed state."), true);
 							return 1;
 						})));

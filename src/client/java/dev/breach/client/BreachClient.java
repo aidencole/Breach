@@ -27,16 +27,18 @@ public final class BreachClient implements ClientModInitializer {
 
 		EntityRendererRegistry.register(BreachEntities.FALLEN_BODY, FallenBodyRenderer::new);
 
+		if (BreachFeatures.DOWNED_SYSTEM_ENABLED) {
+			ClientPlayNetworking.registerGlobalReceiver(DownedPresentationS2CPayload.TYPE, (payload, context) -> {
+				context.client().execute(() -> DownedClientEffects.handle(payload));
+			});
+		}
+
 		if (!BreachFeatures.INJURY_SYSTEM_ENABLED) {
 			return;
 		}
 
 		ClientPlayNetworking.registerGlobalReceiver(InjurySyncS2CPayload.TYPE, (payload, context) -> {
 			context.client().execute(() -> BodyHudOverlay.update(payload.data()));
-		});
-
-		ClientPlayNetworking.registerGlobalReceiver(DownedPresentationS2CPayload.TYPE, (payload, context) -> {
-			context.client().execute(() -> DownedClientEffects.handle(payload));
 		});
 
 		HudElementRegistry.attachElementAfter(

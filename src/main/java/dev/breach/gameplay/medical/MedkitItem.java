@@ -1,9 +1,11 @@
 package dev.breach.gameplay.medical;
 
+import dev.breach.BreachFeatures;
 import dev.breach.core.network.payload.DownedPresentationS2CPayload;
+import dev.breach.gameplay.downed.DownedAttachment;
 import dev.breach.gameplay.downed.DownedController;
+import dev.breach.gameplay.downed.DownedData;
 import dev.breach.gameplay.downed.FallenBodyEntity;
-import dev.breach.gameplay.injury.InjuryAttachment;
 import dev.breach.gameplay.injury.InjuryManager;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -35,27 +37,26 @@ public class MedkitItem extends Item {
 			return InteractionResult.PASS;
 		}
 
-		if (!InjuryAttachment.get(patient).isDowned()) {
+		if (!DownedAttachment.get(patient).isDowned()) {
 			medic.sendSystemMessage(Component.literal("That player is not downed."));
 			return InteractionResult.FAIL;
 		}
 
-		var injury = InjuryAttachment.get(patient);
-		ServerLevel returnLevel = resolveReturnLevel(patient, (ServerLevel) patient.level());
-		Vec3 returnPos = injury.returnX() != null
-				? new Vec3(injury.returnX(), injury.returnY(), injury.returnZ())
+		DownedData downed = DownedAttachment.get(patient);
+		ServerLevel returnLevel = resolveReturnLevel(patient, downed, (ServerLevel) patient.level());
+		Vec3 returnPos = downed.returnX() != null
+				? new Vec3(downed.returnX(), downed.returnY(), downed.returnZ())
 				: patient.position();
 
 		DownedController.fieldRevive(patient, returnPos, returnLevel, DownedPresentationS2CPayload.Cue.FIELD_REVIVED, medic);
 		stack.shrink(1);
 		medic.sendSystemMessage(Component.literal("Field revived " + patient.getGameProfile().name() + "."));
-		InjuryManager.sync(patient);
 		return InteractionResult.SUCCESS;
 	}
 
 	public static boolean useOnFallenBody(ServerPlayer medic, FallenBodyEntity body, ItemStack stack) {
 		ServerPlayer owner = medic.level().getServer().getPlayerList().getPlayer(body.getOwnerUuid());
-		if (owner == null || !InjuryAttachment.get(owner).isDowned()) {
+		if (owner == null || !DownedAttachment.get(owner).isDowned()) {
 			return false;
 		}
 
@@ -65,17 +66,15 @@ public class MedkitItem extends Item {
 		DownedController.fieldRevive(owner, pos, returnLevel, DownedPresentationS2CPayload.Cue.FIELD_REVIVED, medic);
 		stack.shrink(1);
 		medic.sendSystemMessage(Component.literal("Field revived " + owner.getGameProfile().name() + "."));
-		InjuryManager.sync(owner);
 		return true;
 	}
 
-	private static ServerLevel resolveReturnLevel(ServerPlayer patient, ServerLevel fallback) {
-		var injury = InjuryAttachment.get(patient);
-		if (injury.returnDimension() == null) {
+	private static ServerLevel resolveReturnLevel(ServerPlayer patient, DownedData downed, ServerLevel fallback) {
+		if (downed.returnDimension() == null) {
 			return fallback;
 		}
 		ServerLevel level = patient.level().getServer().getLevel(
-				ResourceKey.create(Registries.DIMENSION, Identifier.parse(injury.returnDimension()))
+				ResourceKey.create(Registries.DIMENSION, Identifier.parse(downed.returnDimension()))
 		);
 		return level != null ? level : fallback;
 	}

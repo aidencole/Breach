@@ -1,5 +1,6 @@
 package dev.breach.gameplay.injury;
 
+import dev.breach.gameplay.downed.DownedAttachment;
 import net.minecraft.core.BlockPos;
 
 import java.util.HashMap;
@@ -18,7 +19,7 @@ public final class InjuryManager {
 
 	public static void damage(net.minecraft.server.level.ServerPlayer player, BodyPart part, int amount) {
 		InjuryData data = InjuryAttachment.get(player);
-		if (data.isDowned()) {
+		if (DownedAttachment.get(player).isDowned()) {
 			return;
 		}
 
@@ -33,7 +34,7 @@ public final class InjuryManager {
 
 	public static void onVanillaDamage(net.minecraft.server.level.ServerPlayer player, net.minecraft.world.damagesource.DamageSource source, float amount) {
 		player.setHealth(player.getMaxHealth());
-		if (InjuryAttachment.get(player).isDowned()) {
+		if (DownedAttachment.get(player).isDowned()) {
 			return;
 		}
 		int damage = Math.max(1, Math.round(amount));

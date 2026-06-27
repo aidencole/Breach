@@ -1,10 +1,12 @@
 package dev.breach.gameplay.medical;
 
 import com.mojang.datafixers.util.Either;
+import dev.breach.BreachFeatures;
 import dev.breach.content.BreachBedType;
 import dev.breach.gameplay.downed.CarryManager;
+import dev.breach.gameplay.downed.DownedAttachment;
+import dev.breach.gameplay.downed.DownedConstants;
 import dev.breach.gameplay.downed.FallenBodyEntity;
-import dev.breach.gameplay.injury.InjuryAttachment;
 import dev.breach.gameplay.injury.InjuryManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -55,13 +57,17 @@ public class MedicalBedBlock extends BedBlock {
 
 	public static void startHealing(ServerPlayer player, BlockPos headPos) {
 		HEALING.put(headPos, player.getUUID());
-		InjuryManager.startBedHealing(player, headPos);
+		if (BreachFeatures.INJURY_SYSTEM_ENABLED) {
+			InjuryManager.startBedHealing(player, headPos);
+		}
 	}
 
 	public static void stopHealing(ServerPlayer player) {
 		HEALING.entrySet().removeIf(entry -> {
 			if (entry.getValue().equals(player.getUUID())) {
-				InjuryManager.stopBedHealing(player);
+				if (BreachFeatures.INJURY_SYSTEM_ENABLED) {
+					InjuryManager.stopBedHealing(player);
+				}
 				return true;
 			}
 			return false;
@@ -82,7 +88,7 @@ public class MedicalBedBlock extends BedBlock {
 			return InteractionResult.PASS;
 		}
 
-		if (InjuryAttachment.get(serverPlayer).isDowned()) {
+		if (DownedAttachment.get(serverPlayer).isDowned()) {
 			return InteractionResult.PASS;
 		}
 
@@ -108,12 +114,38 @@ public class MedicalBedBlock extends BedBlock {
 		}
 
 		enterBed(serverPlayer, pos);
-		serverPlayer.sendSystemMessage(Component.literal("Resting in medical bed to heal injuries."));
+		serverPlayer.sendSystemMessage(Component.literal("Resting in medical bed to recover."));
 		return InteractionResult.SUCCESS;
 	}
 
 	private static boolean isHealingPlayer(ServerPlayer player, BlockPos headPos) {
 		return player.getUUID().equals(HEALING.get(headPos));
+	}
+
+	public static void tickVanillaHealing(ServerPlayer player) {
+		if (BreachFeatures.INJURY_SYSTEM_ENABLED || !isHealing(player)) {
+			return;
+		}
+
+		if (player.tickCount % DownedConstants.BED_HEAL_INTERVAL_TICKS != 0) {
+			return;
+		}
+
+		if (player.getHealth() >= player.getMaxHealth()) {
+			stopHealing(player);
+			release(player);
+			if (player.isSleeping()) {
+				player.stopSleepInBed(true, true);
+			}
+			player.sendSystemMessage(Component.literal("Fully recovered."));
+			return;
+		}
+
+		player.setHealth(Math.min(player.getMaxHealth(), player.getHealth() + 1.0f));
+	}
+
+	private static boolean isHealing(ServerPlayer player) {
+		return HEALING.containsValue(player.getUUID());
 	}
 
 	public static void tickOccupants(Level level) {
@@ -123,7 +155,9 @@ public class MedicalBedBlock extends BedBlock {
 				return true;
 			}
 			if (!player.isSleeping() || !player.getSleepingPos().map(entry.getKey()::equals).orElse(false)) {
-				InjuryManager.stopBedHealing(player);
+				if (BreachFeatures.INJURY_SYSTEM_ENABLED) {
+					InjuryManager.stopBedHealing(player);
+				}
 				return true;
 			}
 			return false;

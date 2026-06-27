@@ -1,7 +1,7 @@
 package dev.breach.content.block;
 
 import dev.breach.gameplay.challenge.ChallengeInstanceManager;
-import dev.breach.gameplay.injury.InjuryAttachment;
+import dev.breach.gameplay.downed.DownedAttachment;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
@@ -22,7 +22,7 @@ public class ChallengeReviveBlock extends Block {
 			return InteractionResult.SUCCESS;
 		}
 
-		if (player instanceof ServerPlayer serverPlayer && InjuryAttachment.get(serverPlayer).isDowned()) {
+		if (player instanceof ServerPlayer serverPlayer && DownedAttachment.get(serverPlayer).isDowned()) {
 			ChallengeInstanceManager.completeChallengeRevive(serverPlayer);
 			return InteractionResult.SUCCESS;
 		}

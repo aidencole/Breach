@@ -2,10 +2,9 @@ package dev.breach.gameplay.challenge;
 
 import dev.breach.content.block.BreachBlocks;
 import dev.breach.content.dimension.BreachDimensions;
+import dev.breach.gameplay.downed.DownedAttachment;
 import dev.breach.gameplay.downed.DownedController;
-import dev.breach.gameplay.injury.InjuryAttachment;
-import dev.breach.gameplay.injury.InjuryData;
-import dev.breach.gameplay.injury.InjuryManager;
+import dev.breach.gameplay.downed.DownedData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
@@ -51,15 +50,6 @@ public final class ChallengeInstanceManager {
 			return;
 		}
 
-		InjuryData data = InjuryAttachment.get(player);
-		data.setReturnLocation(
-				returnPos.dimension().identifier().toString(),
-				returnPos.position().x,
-				returnPos.position().y,
-				returnPos.position().z
-		);
-		InjuryAttachment.set(player, data);
-
 		ensureInstance(player);
 		BlockPos origin = originFor(player);
 		player.teleportTo(
@@ -75,11 +65,11 @@ public final class ChallengeInstanceManager {
 	}
 
 	public static void completeChallengeRevive(ServerPlayer player) {
-		if (!InjuryAttachment.get(player).isDowned()) {
+		if (!DownedAttachment.get(player).isDowned()) {
 			return;
 		}
 
-		var data = InjuryAttachment.get(player);
+		DownedData data = DownedAttachment.get(player);
 		if (data.returnDimension() == null || data.returnX() == null) {
 			return;
 		}

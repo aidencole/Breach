@@ -1,12 +1,11 @@
 package dev.breach.gameplay.downed;
 
+import dev.breach.BreachFeatures;
 import dev.breach.content.entity.BreachEntities;
 import dev.breach.core.network.BreachNetworking;
 import dev.breach.core.network.payload.DownedPresentationS2CPayload;
 import dev.breach.gameplay.challenge.ChallengeInstanceManager;
 import dev.breach.gameplay.carry.CarryAttachment;
-import dev.breach.gameplay.injury.InjuryAttachment;
-import dev.breach.gameplay.injury.InjuryData;
 import dev.breach.gameplay.injury.InjuryManager;
 import dev.breach.gameplay.medical.MedicalBedBlock;
 import net.minecraft.core.BlockPos;
@@ -30,8 +29,8 @@ public final class DownedController {
 	}
 
 	public static void downPlayer(ServerPlayer player) {
-		InjuryData data = InjuryAttachment.get(player);
-		if (data.isDowned() || !data.isCritical()) {
+		DownedData data = DownedAttachment.get(player);
+		if (data.isDowned()) {
 			return;
 		}
 
@@ -51,8 +50,9 @@ public final class DownedController {
 				originPos.y,
 				originPos.z
 		);
-		InjuryAttachment.set(player, data);
+		DownedAttachment.set(player, data);
 
+		player.setHealth(player.getMaxHealth());
 		applyDownedEffects(player);
 		ChallengeInstanceManager.ensureInstance(player);
 		ChallengeInstanceManager.teleportToChallenge(player, new ReturnLocation(origin.dimension(), originPos));
@@ -60,52 +60,47 @@ public final class DownedController {
 		player.sendSystemMessage(Component.literal("You are downed. Complete the challenge or wait for rescue."));
 		broadcastNearby(origin, originPos, DownedPresentationS2CPayload.Cue.PLAYER_DOWNED, player.getUUID(), null);
 		BreachNetworking.sendDownedPresentation(player, DownedPresentationS2CPayload.Cue.PLAYER_DOWNED, player.getUUID(), null);
-		InjuryManager.sync(player);
 	}
 
 	public static void fieldRevive(ServerPlayer player, Vec3 returnPos, ServerLevel returnLevel, DownedPresentationS2CPayload.Cue cue, ServerPlayer medic) {
-		InjuryData data = InjuryAttachment.get(player);
+		DownedData data = DownedAttachment.get(player);
 		if (!data.isDowned()) {
 			return;
 		}
 
-		data.applyFieldRevive();
-		data.setBodyEntityId(null);
-		InjuryAttachment.set(player, data);
+		data.clearDownedState();
+		DownedAttachment.set(player, data);
 
 		clearDownedEffects(player);
 		removeBody(player);
+		restoreFieldReviveHealth(player);
 		player.teleportTo(returnLevel, returnPos.x, returnPos.y, returnPos.z, Set.of(), player.getYRot(), player.getXRot(), true);
-		player.sendSystemMessage(Component.literal("You were revived with injuries."));
+		player.sendSystemMessage(Component.literal("You were revived."));
 
 		UUID medicId = medic != null ? medic.getUUID() : null;
 		broadcastNearby(returnLevel, returnPos, cue, player.getUUID(), medicId);
 		BreachNetworking.sendDownedPresentation(player, cue, player.getUUID(), medicId);
-		InjuryManager.sync(player);
 	}
 
 	public static void reviveToBed(ServerPlayer player, ServerLevel level, BlockPos bedPos, ServerPlayer medic) {
-		InjuryData data = InjuryAttachment.get(player);
+		DownedData data = DownedAttachment.get(player);
 		if (!data.isDowned()) {
 			return;
 		}
 
-		data.applyFieldRevive();
-		data.setDowned(false);
-		data.setBodyEntityId(null);
-		data.clearReturnLocation();
-		InjuryAttachment.set(player, data);
+		data.clearDownedState();
+		DownedAttachment.set(player, data);
 
 		clearDownedEffects(player);
 		removeBody(player);
+		restoreFieldReviveHealth(player);
 		player.teleportTo(level, bedPos.getX() + 0.5, bedPos.getY() + 0.5, bedPos.getZ() + 0.5, Set.of(), player.getYRot(), player.getXRot(), true);
 		MedicalBedBlock.enterBed(player, bedPos);
-		player.sendSystemMessage(Component.literal("Placed in medical bed. Rest to heal your injuries."));
+		player.sendSystemMessage(Component.literal("Placed in medical bed. Rest to recover."));
 
 		UUID medicId = medic != null ? medic.getUUID() : null;
 		broadcastNearby(level, Vec3.atCenterOf(bedPos), DownedPresentationS2CPayload.Cue.BED_REVIVED, player.getUUID(), medicId);
 		BreachNetworking.sendDownedPresentation(player, DownedPresentationS2CPayload.Cue.BED_REVIVED, player.getUUID(), medicId);
-		InjuryManager.sync(player);
 	}
 
 	public static void startCarry(ServerPlayer carrier, FallenBodyEntity body) {
@@ -129,7 +124,7 @@ public final class DownedController {
 	}
 
 	public static FallenBodyEntity findBody(Player player) {
-		InjuryData data = InjuryAttachment.get(player);
+		DownedData data = DownedAttachment.get(player);
 		if (data.bodyEntityId() == null || !(player.level() instanceof ServerLevel level)) {
 			return null;
 		}
@@ -140,7 +135,7 @@ public final class DownedController {
 	}
 
 	public static void removeBody(Player player) {
-		InjuryData data = InjuryAttachment.get(player);
+		DownedData data = DownedAttachment.get(player);
 		if (data.bodyEntityId() == null) {
 			return;
 		}
@@ -150,7 +145,7 @@ public final class DownedController {
 			}
 		}
 		data.setBodyEntityId(null);
-		InjuryAttachment.set(player, data);
+		DownedAttachment.set(player, data);
 	}
 
 	public static void onPlayerLogout(ServerPlayer player) {
@@ -160,12 +155,23 @@ public final class DownedController {
 	}
 
 	public static void tickDownedPlayer(ServerPlayer player) {
-		if (!InjuryAttachment.get(player).isDowned()) {
+		if (!DownedAttachment.get(player).isDowned()) {
 			return;
 		}
 		if (!player.hasEffect(MobEffects.SLOWNESS)) {
 			player.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 40, 2, false, false, false));
 		}
+	}
+
+	public static void restoreFieldReviveHealth(ServerPlayer player) {
+		if (BreachFeatures.INJURY_SYSTEM_ENABLED) {
+			var injury = dev.breach.gameplay.injury.InjuryAttachment.get(player);
+			injury.applyFieldRevive();
+			dev.breach.gameplay.injury.InjuryAttachment.set(player, injury);
+			InjuryManager.sync(player);
+			return;
+		}
+		player.setHealth(Math.min(player.getMaxHealth(), DownedConstants.FIELD_REVIVE_HEALTH));
 	}
 
 	private static FallenBodyEntity spawnBody(ServerPlayer player, ServerLevel level, Vec3 pos) {
