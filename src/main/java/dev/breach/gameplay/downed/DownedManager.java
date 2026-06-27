@@ -72,8 +72,8 @@ public final class DownedManager {
 		data.clearReturnLocation();
 		InjuryAttachment.set(player, data);
 
-		player.teleportTo(level, bedPos.getX() + 0.5, bedPos.getY(), bedPos.getZ() + 0.5, Set.of(), player.getYRot(), player.getXRot(), true);
-		MedicalBedBlock.tryEnterStatic(player, bedPos);
+		player.teleportTo(level, bedPos.getX() + 0.5, bedPos.getY() + 0.5, bedPos.getZ() + 0.5, Set.of(), player.getYRot(), player.getXRot(), true);
+		MedicalBedBlock.enterBed(player, bedPos);
 		player.sendSystemMessage(Component.literal("Placed in medical bed. Stay nearby to heal."));
 		InjuryManager.sync(player);
 	}

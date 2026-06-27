@@ -1,6 +1,7 @@
 package dev.breach.client;
 
 import dev.breach.BreachMod;
+import dev.breach.client.downed.FallenBodyRenderer;
 import dev.breach.client.injury.BodyHudOverlay;
 import dev.breach.content.entity.BreachEntities;
 import dev.breach.core.network.BreachNetworking;
@@ -11,7 +12,6 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
-import net.minecraft.client.renderer.entity.ArmorStandRenderer;
 
 public final class BreachClient implements ClientModInitializer {
 	@Override
@@ -26,7 +26,7 @@ public final class BreachClient implements ClientModInitializer {
 
 		BreachNetworking.registerClientReceivers();
 
-		EntityRendererRegistry.register(BreachEntities.FALLEN_BODY, ArmorStandRenderer::new);
+		EntityRendererRegistry.register(BreachEntities.FALLEN_BODY, FallenBodyRenderer::new);
 
 		HudElementRegistry.attachElementAfter(
 				VanillaHudElements.MISC_OVERLAYS,

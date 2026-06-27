@@ -1,9 +1,9 @@
 package dev.breach.client.injury;
 
 import dev.breach.gameplay.injury.BodyPart;
-import dev.breach.gameplay.injury.InjuryConstants;
 import dev.breach.gameplay.injury.InjuryData;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
 
 public final class BodyHudOverlay {
 	private static InjuryData clientData = InjuryData.createDefault();
@@ -18,35 +18,38 @@ public final class BodyHudOverlay {
 	public static void render(GuiGraphicsExtractor graphics) {
 		int screenWidth = graphics.guiWidth();
 		int screenHeight = graphics.guiHeight();
-		int baseX = screenWidth - 70;
-		int baseY = screenHeight - 95;
-		int colorBox = 0xAA000000;
+		int baseX = screenWidth - 58;
+		int baseY = screenHeight - 88;
 
-		graphics.fill(baseX - 4, baseY - 4, baseX + 56, baseY + 76, colorBox);
+		graphics.fill(baseX - 6, baseY - 6, baseX + 50, baseY + 72, 0xAA101010);
 
-		drawPart(graphics, baseX + 16, baseY, 12, 12, BodyPart.HEAD);
-		drawPart(graphics, baseX + 12, baseY + 14, 20, 18, BodyPart.CHEST);
-		drawPart(graphics, baseX, baseY + 16, 10, 16, BodyPart.LEFT_ARM);
-		drawPart(graphics, baseX + 34, baseY + 16, 10, 16, BodyPart.RIGHT_ARM);
-		drawPart(graphics, baseX + 12, baseY + 36, 9, 18, BodyPart.LEFT_LEG);
-		drawPart(graphics, baseX + 23, baseY + 36, 9, 18, BodyPart.RIGHT_LEG);
+		drawPart(graphics, baseX + 14, baseY, BodyPart.HEAD);
+		drawPart(graphics, baseX + 10, baseY + 13, BodyPart.CHEST);
+		drawPart(graphics, baseX, baseY + 15, BodyPart.LEFT_ARM);
+		drawPart(graphics, baseX + 30, baseY + 15, BodyPart.RIGHT_ARM);
+		drawPart(graphics, baseX + 10, baseY + 34, BodyPart.LEFT_LEG);
+		drawPart(graphics, baseX + 22, baseY + 34, BodyPart.RIGHT_LEG);
 	}
 
-	private static void drawPart(GuiGraphicsExtractor graphics, int x, int y, int w, int h, BodyPart part) {
-		graphics.fill(x, y, x + w, y + h, colorFor(clientData.get(part)));
-	}
+	private static void drawPart(GuiGraphicsExtractor graphics, int x, int y, BodyPart part) {
+		int health = clientData.get(part);
+		BodyHudAtlas.HealthBand band = BodyHudAtlas.HealthBand.forHealth(health);
+		int w = part == BodyPart.HEAD ? 12 : part == BodyPart.CHEST ? 20 : part.name().contains("LEG") ? 9 : 10;
+		int h = part == BodyPart.HEAD ? 12 : part == BodyPart.CHEST ? 18 : part.name().contains("LEG") ? 18 : 16;
 
-	private static int colorFor(int health) {
-		if (health >= InjuryConstants.MAX_PART_HEALTH) {
-			return 0xFF8A9099;
-		}
-		float ratio = health / (float) InjuryConstants.MAX_PART_HEALTH;
-		if (ratio > 0.66f) {
-			return 0xFFEAD64D;
-		}
-		if (ratio > 0.33f) {
-			return 0xFFE8903A;
-		}
-		return 0xFFE04B4B;
+		graphics.blit(
+				RenderPipelines.GUI_TEXTURED,
+				BodyHudAtlas.TEXTURE,
+				x,
+				y,
+				BodyHudAtlas.u(part),
+				BodyHudAtlas.v(band),
+				w,
+				h,
+				BodyHudAtlas.CELL,
+				BodyHudAtlas.CELL,
+				BodyHudAtlas.TEX_SIZE,
+				BodyHudAtlas.TEX_SIZE
+		);
 	}
 }

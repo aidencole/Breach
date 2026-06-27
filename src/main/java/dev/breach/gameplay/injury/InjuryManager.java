@@ -73,6 +73,9 @@ public final class InjuryManager {
 		if (data.isFullyHealed()) {
 			stopBedHealing(player);
 			dev.breach.gameplay.medical.MedicalBedBlock.release(player);
+			if (player.isSleeping()) {
+				player.stopSleepInBed(true, true);
+			}
 			return;
 		}
 

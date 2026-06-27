@@ -1,3 +1,6 @@
 {
-  "parent": "breach:block/challenge_revive"
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "breach:item/challenge_revive"
+  }
 }

@@ -21,6 +21,9 @@
 			"dev.breach.client.BreachClient"
 		]
 	},
+	"mixins": [
+		"breach.client.mixins.json"
+	],
 	"depends": {
 		"fabricloader": ">=0.19.3",
 		"minecraft": "~26.2",

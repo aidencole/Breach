@@ -10,7 +10,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.entity.decoration.ArmorStand;
 
 public final class BreachEntities {
 	public static final EntityType<FallenBodyEntity> FALLEN_BODY = registerFallenBody();
@@ -19,7 +18,7 @@ public final class BreachEntities {
 	}
 
 	public static void register() {
-		FabricDefaultAttributeRegistry.register(FALLEN_BODY, ArmorStand.createAttributes());
+		FabricDefaultAttributeRegistry.register(FALLEN_BODY, FallenBodyEntity.createAttributes());
 		BreachMod.LOGGER.info("Registered Breach entities");
 	}
 
@@ -27,7 +26,7 @@ public final class BreachEntities {
 		Identifier id = BreachMod.id("fallen_body");
 		ResourceKey<EntityType<?>> key = ResourceKey.create(Registries.ENTITY_TYPE, id);
 		EntityType<FallenBodyEntity> type = EntityType.Builder.of(FallenBodyEntity::new, MobCategory.MISC)
-				.sized(0.5f, 0.35f)
+				.sized(0.6f, 0.2f)
 				.clientTrackingRange(64)
 				.updateInterval(5)
 				.build(key);

@@ -5,6 +5,7 @@ import dev.breach.gameplay.injury.InjuryAttachment;
 import dev.breach.gameplay.injury.InjuryManager;
 import dev.breach.gameplay.medical.MedicalBedBlock;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -38,6 +39,14 @@ public final class BreachGameplay {
 		ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> {
 			if (!alive) {
 				newPlayer.setAttached(InjuryAttachment.INJURY, oldPlayer.getAttachedOrCreate(InjuryAttachment.INJURY));
+			}
+		});
+
+		EntitySleepEvents.ALLOW_RESETTING_TIME.register(player -> false);
+		EntitySleepEvents.ALLOW_SETTING_SPAWN.register((player, sleepingPos) -> false);
+		EntitySleepEvents.STOP_SLEEPING.register((entity, sleepingPos) -> {
+			if (entity instanceof ServerPlayer player) {
+				MedicalBedBlock.stopHealing(player);
 			}
 		});
 
