@@ -1,34 +1,26 @@
 {
 	"schemaVersion": 1,
-	"id": "modid",
+	"id": "breach",
 	"version": "${version}",
-	"name": "Example Mod",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"name": "Breach",
+	"description": "A polished multiplayer story event set in the Sculk Dimension. Custom blocks, items, enemies, dungeons, bosses, cutscenes, and UI for 30+ players.",
 	"authors": [
-		"Me!"
+		"aidencole"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://github.com/aidencole/Breach",
+		"sources": "https://github.com/aidencole/Breach"
 	},
-	"license": "CC0-1.0",
-	"icon": "assets/modid/icon.png",
+	"license": "All Rights Reserved",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"com.example.ExampleMod"
+			"dev.breach.BreachMod"
 		],
 		"client": [
-			"com.example.client.ExampleModClient"
+			"dev.breach.client.BreachClient"
 		]
 	},
-	"mixins": [
-		"modid.mixins.json",
-		{
-			"config": "modid.client.mixins.json",
-			"environment": "client"
-		}
-	],
 	"depends": {
 		"fabricloader": ">=0.19.3",
 		"minecraft": "~26.2",
