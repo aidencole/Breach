@@ -1,5 +1,7 @@
 package dev.breach.gameplay;
 
+import dev.breach.BreachFeatures;
+import dev.breach.BreachMod;
 import dev.breach.command.BreachCommands;
 import dev.breach.gameplay.downed.DownedController;
 import dev.breach.gameplay.injury.InjuryAttachment;
@@ -20,6 +22,15 @@ public final class BreachGameplay {
 	public static void init() {
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> BreachCommands.register(dispatcher));
 
+		if (!BreachFeatures.INJURY_SYSTEM_ENABLED) {
+			BreachMod.LOGGER.info("Injury and downed systems are disabled — vanilla damage and death are active");
+			return;
+		}
+
+		registerInjurySystems();
+	}
+
+	private static void registerInjurySystems() {
 		ServerLivingEntityEvents.ALLOW_DEATH.register((entity, source, amount) -> {
 			if (entity instanceof ServerPlayer player) {
 				player.setHealth(player.getMaxHealth());

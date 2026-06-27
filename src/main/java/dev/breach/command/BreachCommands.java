@@ -3,6 +3,7 @@ package dev.breach.command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import dev.breach.BreachFeatures;
 import dev.breach.content.block.BreachBlocks;
 import dev.breach.content.item.BreachItems;
 import dev.breach.gameplay.injury.BodyPart;
@@ -26,6 +27,10 @@ public final class BreachCommands {
 						.then(Commands.argument("part", StringArgumentType.word())
 								.then(Commands.argument("amount", IntegerArgumentType.integer(1, 6))
 										.executes(ctx -> {
+											if (!BreachFeatures.INJURY_SYSTEM_ENABLED) {
+												ctx.getSource().sendFailure(Component.literal("Injury system is disabled."));
+												return 0;
+											}
 											ServerPlayer player = ctx.getSource().getPlayerOrException();
 											BodyPart part = BodyPart.valueOf(StringArgumentType.getString(ctx, "part").toUpperCase());
 											int amount = IntegerArgumentType.getInteger(ctx, "amount");
@@ -35,6 +40,10 @@ public final class BreachCommands {
 										}))))
 				.then(Commands.literal("heal")
 						.executes(ctx -> {
+							if (!BreachFeatures.INJURY_SYSTEM_ENABLED) {
+								ctx.getSource().sendFailure(Component.literal("Injury system is disabled."));
+								return 0;
+							}
 							ServerPlayer player = ctx.getSource().getPlayerOrException();
 							InjuryAttachment.get(player).fullHeal();
 							InjuryManager.sync(player);

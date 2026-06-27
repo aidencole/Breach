@@ -1,5 +1,6 @@
 package dev.breach.client;
 
+import dev.breach.BreachFeatures;
 import dev.breach.BreachMod;
 import dev.breach.client.downed.DownedClientEffects;
 import dev.breach.client.downed.FallenBodyRenderer;
@@ -22,6 +23,14 @@ public final class BreachClient implements ClientModInitializer {
 			context.client().execute(() -> EventStateHandler.onEventState(payload));
 		});
 
+		BreachNetworking.registerClientReceivers();
+
+		EntityRendererRegistry.register(BreachEntities.FALLEN_BODY, FallenBodyRenderer::new);
+
+		if (!BreachFeatures.INJURY_SYSTEM_ENABLED) {
+			return;
+		}
+
 		ClientPlayNetworking.registerGlobalReceiver(InjurySyncS2CPayload.TYPE, (payload, context) -> {
 			context.client().execute(() -> BodyHudOverlay.update(payload.data()));
 		});
@@ -29,10 +38,6 @@ public final class BreachClient implements ClientModInitializer {
 		ClientPlayNetworking.registerGlobalReceiver(DownedPresentationS2CPayload.TYPE, (payload, context) -> {
 			context.client().execute(() -> DownedClientEffects.handle(payload));
 		});
-
-		BreachNetworking.registerClientReceivers();
-
-		EntityRendererRegistry.register(BreachEntities.FALLEN_BODY, FallenBodyRenderer::new);
 
 		HudElementRegistry.attachElementAfter(
 				VanillaHudElements.MISC_OVERLAYS,
