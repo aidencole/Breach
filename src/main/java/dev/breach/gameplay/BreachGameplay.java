@@ -5,6 +5,7 @@ import dev.breach.BreachMod;
 import dev.breach.command.BreachCommands;
 import dev.breach.gameplay.downed.DownedAttachment;
 import dev.breach.gameplay.downed.DownedController;
+import dev.breach.gameplay.downed.DownedDeathHandler;
 import dev.breach.gameplay.injury.InjuryAttachment;
 import dev.breach.gameplay.injury.InjuryManager;
 import dev.breach.gameplay.medical.MedicalBedBlock;
@@ -54,14 +55,9 @@ public final class BreachGameplay {
 	}
 
 	private static void registerDownedSystems() {
-		ServerLivingEntityEvents.ALLOW_DEATH.register((entity, source, amount) -> {
-			if (entity instanceof ServerPlayer player) {
-				DownedController.downPlayer(player);
-				player.setHealth(player.getMaxHealth());
-				return false;
-			}
-			return true;
-		});
+		DownedAttachment.DOWNED.getClass();
+
+		ServerLivingEntityEvents.ALLOW_DEATH.register(DownedDeathHandler::tryInterceptDeath);
 
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
 			if (handler.player instanceof ServerPlayer player) {
@@ -85,6 +81,7 @@ public final class BreachGameplay {
 
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+				DownedDeathHandler.tick(player);
 				DownedController.tickDownedPlayer(player);
 				if (BreachFeatures.INJURY_SYSTEM_ENABLED) {
 					InjuryManager.tickBedHealing(player);

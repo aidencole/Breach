@@ -25,6 +25,7 @@ public final class BreachMod implements ModInitializer {
 		BreachItems.register();
 		BreachEntities.register();
 		BreachDimensions.register();
+		dev.breach.gameplay.downed.DownedAttachment.DOWNED.getClass();
 		EventSessionManager.init();
 		BreachGameplay.init();
 

@@ -1,5 +1,6 @@
 package dev.breach.gameplay.challenge;
 
+import dev.breach.BreachMod;
 import dev.breach.content.block.BreachBlocks;
 import dev.breach.content.dimension.BreachDimensions;
 import dev.breach.gameplay.downed.DownedAttachment;
@@ -29,7 +30,12 @@ public final class ChallengeInstanceManager {
 	}
 
 	public static ServerLevel challengeLevel(ServerPlayer player) {
-		return player.level().getServer().getLevel(BreachDimensions.CHALLENGE_LEVEL);
+		var server = player.level().getServer();
+		ServerLevel level = server.getLevel(BreachDimensions.CHALLENGE_LEVEL);
+		if (level == null) {
+			BreachMod.LOGGER.error("Challenge dimension {} is not loaded — downed teleport will fail", BreachDimensions.CHALLENGE_LEVEL.identifier());
+		}
+		return level;
 	}
 
 	public static void ensureInstance(ServerPlayer player) {
@@ -47,11 +53,13 @@ public final class ChallengeInstanceManager {
 	public static void teleportToChallenge(ServerPlayer player, DownedController.ReturnLocation returnPos) {
 		ServerLevel challenge = challengeLevel(player);
 		if (challenge == null) {
+			player.sendSystemMessage(net.minecraft.network.chat.Component.literal("Challenge dimension unavailable. Contact an admin."));
 			return;
 		}
 
 		ensureInstance(player);
 		BlockPos origin = originFor(player);
+		challenge.getChunk(origin);
 		player.teleportTo(
 				challenge,
 				origin.getX() + 0.5,

@@ -1,6 +1,7 @@
 package dev.breach.gameplay.downed;
 
 import dev.breach.BreachFeatures;
+import dev.breach.BreachMod;
 import dev.breach.content.entity.BreachEntities;
 import dev.breach.core.network.BreachNetworking;
 import dev.breach.core.network.payload.DownedPresentationS2CPayload;
@@ -39,11 +40,13 @@ public final class DownedController {
 
 		FallenBodyEntity body = spawnBody(player, origin, originPos);
 		if (body == null) {
-			return;
+			BreachMod.LOGGER.warn("Failed to spawn fallen body for {} — continuing downed flow without body", player.getGameProfile().name());
 		}
 
 		data.setDowned(true);
-		data.setBodyEntityId(body.getUUID());
+		if (body != null) {
+			data.setBodyEntityId(body.getUUID());
+		}
 		data.setReturnLocation(
 				origin.dimension().identifier().toString(),
 				originPos.x,
@@ -175,11 +178,15 @@ public final class DownedController {
 	}
 
 	private static FallenBodyEntity spawnBody(ServerPlayer player, ServerLevel level, Vec3 pos) {
+		BlockPos blockPos = BlockPos.containing(pos);
+		level.getChunk(blockPos);
+
 		FallenBodyEntity body = new FallenBodyEntity(BreachEntities.FALLEN_BODY, level);
 		body.setOwner(player);
 		body.snapToGround(pos);
 		body.setYRot(player.getYRot());
 		if (!level.addFreshEntity(body)) {
+			BreachMod.LOGGER.warn("addFreshEntity failed for fallen body of {} at {}", player.getGameProfile().name(), blockPos);
 			return null;
 		}
 		level.playSound(null, body.blockPosition(), SoundEvents.ARMOR_EQUIP_LEATHER.value(), SoundSource.PLAYERS, 0.8f, 0.7f);
