@@ -1,19 +1,19 @@
 package dev.breach.gameplay.downed;
 
-import dev.breach.gameplay.carry.CarryAttachment;
 import dev.breach.gameplay.medical.MedkitItem;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -38,16 +38,24 @@ public class FallenBodyEntity extends Mob {
 			FallenBodyEntity.class,
 			EntityDataSerializers.STRING
 	);
+	private static final EntityDataAccessor<Byte> BODY_PHASE = SynchedEntityData.defineId(
+			FallenBodyEntity.class,
+			EntityDataSerializers.BYTE
+	);
 
 	private UUID ownerUuid = UUID.randomUUID();
 	private String ownerName = "Unknown";
+	private double smoothX;
+	private double smoothY;
+	private double smoothZ;
+	private boolean initialized;
 
 	public FallenBodyEntity(EntityType<? extends FallenBodyEntity> type, Level level) {
 		super(type, level);
 		this.setNoAi(true);
 		this.setPersistenceRequired();
 		this.setNoGravity(true);
-		this.setCustomNameVisible(true);
+		this.setCustomNameVisible(false);
 	}
 
 	public static AttributeSupplier.Builder createAttributes() {
@@ -59,9 +67,7 @@ public class FallenBodyEntity extends Mob {
 		this.ownerName = player.getGameProfile().name();
 		this.entityData.set(OWNER_ID, ownerUuid.toString());
 		this.entityData.set(OWNER_NAME, ownerName);
-		this.setCustomName(Component.literal(ownerName + " (Downed)"));
-		this.setYRot(player.getYRot());
-		this.setPose(Pose.SLEEPING);
+		this.setCustomName(Component.literal(ownerName));
 	}
 
 	public UUID getOwnerUuid() {
@@ -72,29 +78,46 @@ public class FallenBodyEntity extends Mob {
 		return ownerName;
 	}
 
+	public FallenBodyPhase getBodyPhase() {
+		return FallenBodyPhase.values()[entityData.get(BODY_PHASE) & 0x1];
+	}
+
+	private void setBodyPhase(FallenBodyPhase phase) {
+		entityData.set(BODY_PHASE, (byte) phase.ordinal());
+	}
+
 	public Optional<UUID> getCarrierUuid() {
 		String raw = entityData.get(CARRIER_ID);
 		return raw.isEmpty() ? Optional.empty() : Optional.of(UUID.fromString(raw));
 	}
 
-	public void setCarrierUuid(UUID carrierUuid) {
-		if (carrierUuid != null && getCarrierUuid().map(carrierUuid::equals).orElse(false)) {
-			return;
-		}
-		clearCarrier();
-		entityData.set(CARRIER_ID, carrierUuid == null ? "" : carrierUuid.toString());
-		if (carrierUuid != null && level().getEntity(carrierUuid) instanceof ServerPlayer carrier) {
-			CarryAttachment.setCarrying(carrier, true);
-		}
+	public void beginCarry(ServerPlayer carrier) {
+		entityData.set(CARRIER_ID, carrier.getUUID().toString());
+		setBodyPhase(FallenBodyPhase.CARRIED);
 	}
 
-	public void clearCarrier() {
+	public void endCarry() {
 		getCarrierUuid().ifPresent(id -> {
 			if (level().getEntity(id) instanceof ServerPlayer carrier) {
-				CarryAttachment.setCarrying(carrier, false);
+				carrier.removeEffect(net.minecraft.world.effect.MobEffects.SLOWNESS);
 			}
 		});
-		setCarrierUuid(null);
+		entityData.set(CARRIER_ID, "");
+		setBodyPhase(FallenBodyPhase.GROUND);
+		snapToGround(position());
+	}
+
+	public void snapToGround(Vec3 pos) {
+		if (level().isClientSide()) {
+			return;
+		}
+		BlockPos below = BlockPos.containing(pos.x, pos.y - 0.05, pos.z);
+		double groundY = below.getY() + 1.0 + 0.02;
+		setPos(pos.x, groundY, pos.z);
+		smoothX = pos.x;
+		smoothY = groundY;
+		smoothZ = pos.z;
+		initialized = true;
 	}
 
 	@Override
@@ -103,6 +126,7 @@ public class FallenBodyEntity extends Mob {
 		builder.define(CARRIER_ID, "");
 		builder.define(OWNER_ID, ownerUuid.toString());
 		builder.define(OWNER_NAME, ownerName);
+		builder.define(BODY_PHASE, (byte) FallenBodyPhase.GROUND.ordinal());
 	}
 
 	@Override
@@ -112,17 +136,22 @@ public class FallenBodyEntity extends Mob {
 			return;
 		}
 
-		if (getCarrierUuid().isPresent()) {
+		if (!initialized) {
+			snapToGround(position());
+		}
+
+		if (getBodyPhase() == FallenBodyPhase.CARRIED && getCarrierUuid().isPresent()) {
 			if (level().getEntity(getCarrierUuid().get()) instanceof Player carrier) {
-				Vec3 offset = carrier.getLookAngle().scale(0.35);
-				setPos(carrier.getX() + offset.x, carrier.getY() + 2.05, carrier.getZ() + offset.z);
-				setYRot(carrier.getYRot());
-				setPose(Pose.SLEEPING);
+				Vec3 target = CarryAnchor.worldPosition(carrier);
+				smoothX = Mth.lerp(0.45, smoothX, target.x);
+				smoothY = Mth.lerp(0.45, smoothY, target.y);
+				smoothZ = Mth.lerp(0.45, smoothZ, target.z);
+				setPos(smoothX, smoothY, smoothZ);
+				setYRot(Mth.lerp(0.35f, getYRot(), carrier.getYRot()));
+				setXRot(0.0f);
 			} else {
-				clearCarrier();
+				endCarry();
 			}
-		} else {
-			setPose(Pose.SLEEPING);
 		}
 	}
 
@@ -152,8 +181,8 @@ public class FallenBodyEntity extends Mob {
 	}
 
 	@Override
-	public void remove(net.minecraft.world.entity.Entity.RemovalReason reason) {
-		clearCarrier();
+	public void remove(RemovalReason reason) {
+		endCarry();
 		super.remove(reason);
 	}
 
@@ -164,7 +193,7 @@ public class FallenBodyEntity extends Mob {
 		ownerName = input.getStringOr("OwnerName", ownerName);
 		entityData.set(OWNER_ID, ownerUuid.toString());
 		entityData.set(OWNER_NAME, ownerName);
-		input.getString("Carrier").ifPresent(value -> setCarrierUuid(UUID.fromString(value)));
+		input.getString("Carrier").ifPresent(value -> entityData.set(CARRIER_ID, value));
 	}
 
 	@Override

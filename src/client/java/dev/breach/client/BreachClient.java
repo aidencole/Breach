@@ -1,10 +1,12 @@
 package dev.breach.client;
 
 import dev.breach.BreachMod;
+import dev.breach.client.downed.DownedClientEffects;
 import dev.breach.client.downed.FallenBodyRenderer;
 import dev.breach.client.injury.BodyHudOverlay;
 import dev.breach.content.entity.BreachEntities;
 import dev.breach.core.network.BreachNetworking;
+import dev.breach.core.network.payload.DownedPresentationS2CPayload;
 import dev.breach.core.network.payload.EventStateS2CPayload;
 import dev.breach.core.network.payload.InjurySyncS2CPayload;
 import net.fabricmc.api.ClientModInitializer;
@@ -22,6 +24,10 @@ public final class BreachClient implements ClientModInitializer {
 
 		ClientPlayNetworking.registerGlobalReceiver(InjurySyncS2CPayload.TYPE, (payload, context) -> {
 			context.client().execute(() -> BodyHudOverlay.update(payload.data()));
+		});
+
+		ClientPlayNetworking.registerGlobalReceiver(DownedPresentationS2CPayload.TYPE, (payload, context) -> {
+			context.client().execute(() -> DownedClientEffects.handle(payload));
 		});
 
 		BreachNetworking.registerClientReceivers();

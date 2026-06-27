@@ -2,19 +2,17 @@ package dev.breach.client.downed;
 
 import com.mojang.math.Axis;
 import dev.breach.gameplay.downed.FallenBodyEntity;
-import net.minecraft.client.model.HumanoidModel;
+import dev.breach.gameplay.downed.FallenBodyPhase;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.HumanoidMobRenderer;
-import net.minecraft.client.resources.DefaultPlayerSkin;
-import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.Pose;
+import net.minecraft.util.Mth;
 import com.mojang.blaze3d.vertex.PoseStack;
 
-public class FallenBodyRenderer extends HumanoidMobRenderer<FallenBodyEntity, FallenBodyRenderState, HumanoidModel<FallenBodyRenderState>> {
+public class FallenBodyRenderer extends HumanoidMobRenderer<FallenBodyEntity, FallenBodyRenderState, FallenBodyModel> {
 	public FallenBodyRenderer(EntityRendererProvider.Context context) {
-		super(context, new HumanoidModel<>(context.bakeLayer(ModelLayers.PLAYER)), 0.375f);
+		super(context, new FallenBodyModel(context.bakeLayer(ModelLayers.PLAYER)), 0.375f);
 	}
 
 	@Override
@@ -26,22 +24,43 @@ public class FallenBodyRenderer extends HumanoidMobRenderer<FallenBodyEntity, Fa
 	public void extractRenderState(FallenBodyEntity entity, FallenBodyRenderState state, float partialTick) {
 		super.extractRenderState(entity, state, partialTick);
 		state.ownerUuid = entity.getOwnerUuid();
-		state.carried = entity.getCarrierUuid().isPresent();
-		state.pose = Pose.SLEEPING;
-		state.bedOrientation = Direction.fromYRot(entity.getYRot());
+		state.ownerName = entity.getOwnerName();
+		state.bodyPhase = entity.getBodyPhase();
+		state.ageInTicks = entity.tickCount + partialTick;
 	}
 
 	@Override
 	public Identifier getTextureLocation(FallenBodyRenderState state) {
-		return DefaultPlayerSkin.get(state.ownerUuid).body().texturePath();
+		return FallenBodySkinCache.resolve(state.ownerUuid, state.ownerName);
 	}
 
 	@Override
 	protected void setupRotations(FallenBodyRenderState state, PoseStack poseStack, float bodyRot, float partialTick) {
-		super.setupRotations(state, poseStack, bodyRot, partialTick);
-		if (!state.carried) {
-			poseStack.translate(0.0, 0.35, 0.0);
-			poseStack.mulPose(Axis.XP.rotationDegrees(90.0f));
+		if (state.bodyPhase == FallenBodyPhase.GROUND) {
+			poseStack.mulPose(Axis.YP.rotationDegrees(180.0f - bodyRot));
+			poseStack.translate(0.0, 0.02, 0.0);
+			return;
 		}
+		poseStack.mulPose(Axis.YP.rotationDegrees(180.0f - bodyRot));
+		poseStack.translate(0.0, -0.55, 0.0);
+	}
+
+	@Override
+	protected void scale(FallenBodyRenderState state, PoseStack poseStack) {
+		float scale = 0.9375f;
+		poseStack.scale(scale, scale, scale);
+	}
+
+	@Override
+	protected int getModelTint(FallenBodyRenderState state) {
+		if (state.bodyPhase == FallenBodyPhase.CARRIED) {
+			return 0xFFFFFFFF;
+		}
+		return super.getModelTint(state);
+	}
+
+	@Override
+	protected float getShadowRadius(FallenBodyRenderState state) {
+		return state.bodyPhase == FallenBodyPhase.GROUND ? 0.25f : 0.05f;
 	}
 }

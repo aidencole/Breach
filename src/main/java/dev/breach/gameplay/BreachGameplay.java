@@ -1,6 +1,7 @@
 package dev.breach.gameplay;
 
 import dev.breach.command.BreachCommands;
+import dev.breach.gameplay.downed.DownedController;
 import dev.breach.gameplay.injury.InjuryAttachment;
 import dev.breach.gameplay.injury.InjuryManager;
 import dev.breach.gameplay.medical.MedicalBedBlock;
@@ -36,6 +37,12 @@ public final class BreachGameplay {
 
 		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> InjuryManager.sync(handler.player));
 
+		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+			if (handler.player instanceof ServerPlayer player) {
+				DownedController.onPlayerLogout(player);
+			}
+		});
+
 		ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> {
 			if (!alive) {
 				newPlayer.setAttached(InjuryAttachment.INJURY, oldPlayer.getAttachedOrCreate(InjuryAttachment.INJURY));
@@ -52,6 +59,7 @@ public final class BreachGameplay {
 
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+				DownedController.tickDownedPlayer(player);
 				InjuryManager.tickBedHealing(player);
 			}
 			for (var level : server.getAllLevels()) {

@@ -2,7 +2,7 @@ package dev.breach.gameplay.challenge;
 
 import dev.breach.content.block.BreachBlocks;
 import dev.breach.content.dimension.BreachDimensions;
-import dev.breach.gameplay.downed.DownedManager;
+import dev.breach.gameplay.downed.DownedController;
 import dev.breach.gameplay.injury.InjuryAttachment;
 import dev.breach.gameplay.injury.InjuryData;
 import dev.breach.gameplay.injury.InjuryManager;
@@ -45,7 +45,7 @@ public final class ChallengeInstanceManager {
 		return origin.offset(2, 1, 0);
 	}
 
-	public static void teleportToChallenge(ServerPlayer player, DownedManager.ReturnLocation returnPos) {
+	public static void teleportToChallenge(ServerPlayer player, DownedController.ReturnLocation returnPos) {
 		ServerLevel challenge = challengeLevel(player);
 		if (challenge == null) {
 			return;
@@ -92,8 +92,13 @@ public final class ChallengeInstanceManager {
 		}
 
 		Vec3 pos = new Vec3(data.returnX(), data.returnY(), data.returnZ());
-		DownedManager.fieldRevive(player, pos, returnLevel);
-		InjuryManager.sync(player);
+		DownedController.fieldRevive(
+				player,
+				pos,
+				returnLevel,
+				dev.breach.core.network.payload.DownedPresentationS2CPayload.Cue.CHALLENGE_REVIVED,
+				null
+		);
 	}
 
 	private static void ensurePlatform(ServerLevel level, BlockPos origin) {
