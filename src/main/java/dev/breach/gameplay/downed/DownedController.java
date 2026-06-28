@@ -60,7 +60,7 @@ public final class DownedController {
 		ChallengeInstanceManager.ensureInstance(player);
 		ChallengeInstanceManager.teleportToChallenge(player, new ReturnLocation(origin.dimension(), originPos));
 
-		player.sendSystemMessage(Component.literal("You are downed. Complete the challenge or wait for rescue."));
+		player.sendSystemMessage(Component.literal("You are downed. Right-click the red block in the challenge to revive, or wait for rescue."));
 		broadcastNearby(origin, originPos, DownedPresentationS2CPayload.Cue.PLAYER_DOWNED, player.getUUID(), null);
 		BreachNetworking.sendDownedPresentation(player, DownedPresentationS2CPayload.Cue.PLAYER_DOWNED, player.getUUID(), null);
 	}

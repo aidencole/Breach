@@ -23,7 +23,8 @@ public final class BreachBlocks {
 			BlockBehaviour.Properties.of()
 					.mapColor(DyeColor.RED)
 					.strength(2.0f)
-					.sound(SoundType.STONE)
+					.sound(SoundType.METAL)
+					.lightLevel(state -> 12)
 	);
 
 	public static final MedicalBedBlock MEDICAL_BED = registerBed(

@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "breach:block/challenge_revive"
+    "all": "minecraft:block/red_concrete"
   }
 }

@@ -3,7 +3,10 @@ package dev.breach.content.block;
 import dev.breach.gameplay.challenge.ChallengeInstanceManager;
 import dev.breach.gameplay.downed.DownedAttachment;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -22,11 +25,17 @@ public class ChallengeReviveBlock extends Block {
 			return InteractionResult.SUCCESS;
 		}
 
-		if (player instanceof ServerPlayer serverPlayer && DownedAttachment.get(serverPlayer).isDowned()) {
-			ChallengeInstanceManager.completeChallengeRevive(serverPlayer);
-			return InteractionResult.SUCCESS;
+		if (!(player instanceof ServerPlayer serverPlayer)) {
+			return InteractionResult.PASS;
 		}
 
-		return InteractionResult.PASS;
+		if (!DownedAttachment.get(serverPlayer).isDowned()) {
+			serverPlayer.sendSystemMessage(Component.literal("Only downed players can use the revive beacon."));
+			return InteractionResult.FAIL;
+		}
+
+		level.playSound(null, pos, SoundEvents.TOTEM_USE, SoundSource.PLAYERS, 0.8f, 1.0f);
+		ChallengeInstanceManager.completeChallengeRevive(serverPlayer);
+		return InteractionResult.SUCCESS;
 	}
 }
