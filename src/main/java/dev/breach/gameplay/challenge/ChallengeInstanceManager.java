@@ -36,7 +36,11 @@ public final class ChallengeInstanceManager {
 		var server = player.level().getServer();
 		ServerLevel level = server.getLevel(BreachDimensions.CHALLENGE_LEVEL);
 		if (level == null) {
-			BreachMod.LOGGER.error("Challenge dimension {} is not loaded — downed teleport will fail", BreachDimensions.CHALLENGE_LEVEL.identifier());
+			BreachMod.LOGGER.error(
+					"Challenge dimension {} is not loaded. Loaded dimensions: {}",
+					BreachDimensions.CHALLENGE_LEVEL.identifier(),
+					server.levelKeys()
+			);
 		}
 		return level;
 	}
@@ -57,7 +61,7 @@ public final class ChallengeInstanceManager {
 		return 0.0f;
 	}
 
-	public static void teleportToChallenge(ServerPlayer player, DownedController.ReturnLocation returnPos) {
+	public static void teleportToChallenge(ServerPlayer player) {
 		ServerLevel challenge = challengeLevel(player);
 		if (challenge == null) {
 			player.sendSystemMessage(net.minecraft.network.chat.Component.literal("Challenge dimension unavailable. Contact an admin."));

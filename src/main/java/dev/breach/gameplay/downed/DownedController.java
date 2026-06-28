@@ -5,6 +5,7 @@ import dev.breach.BreachMod;
 import dev.breach.content.entity.BreachEntities;
 import dev.breach.core.network.BreachNetworking;
 import dev.breach.core.network.payload.DownedPresentationS2CPayload;
+import dev.breach.content.dimension.BreachDimensions;
 import dev.breach.gameplay.challenge.ChallengeInstanceManager;
 import dev.breach.gameplay.carry.CarryAttachment;
 import dev.breach.gameplay.injury.InjuryManager;
@@ -32,12 +33,48 @@ public final class DownedController {
 	public static void downPlayer(ServerPlayer player) {
 		DownedData data = DownedAttachment.get(player);
 		if (data.isDowned()) {
+			ensureInChallenge(player);
 			return;
 		}
 
 		ServerLevel origin = (ServerLevel) player.level();
 		Vec3 originPos = player.position();
 
+		try {
+			beginDowned(player, data, origin, originPos);
+		} catch (Exception exception) {
+			BreachMod.LOGGER.error("Downed flow failed for {}", player.getGameProfile().name(), exception);
+			data.clearDownedState();
+			DownedAttachment.set(player, data);
+			clearDownedEffects(player);
+			player.sendSystemMessage(Component.literal("Downed system failed — try again or contact an admin."));
+		}
+	}
+
+	public static void ensureInChallenge(ServerPlayer player) {
+		if (!DownedAttachment.get(player).isDowned()) {
+			return;
+		}
+
+		if (player.level().dimension().equals(BreachDimensions.CHALLENGE_LEVEL)) {
+			return;
+		}
+
+		DownedData data = DownedAttachment.get(player);
+		if (data.returnDimension() == null) {
+			BreachMod.LOGGER.warn("Clearing stale downed state for {}", player.getGameProfile().name());
+			data.clearDownedState();
+			DownedAttachment.set(player, data);
+			clearDownedEffects(player);
+			return;
+		}
+
+		ChallengeInstanceManager.ensureInstance(player);
+		ChallengeInstanceManager.teleportToChallenge(player);
+		player.sendSystemMessage(Component.literal("Returned to the challenge dimension. Right-click the red block to revive."));
+	}
+
+	private static void beginDowned(ServerPlayer player, DownedData data, ServerLevel origin, Vec3 originPos) {
 		FallenBodyEntity body = spawnBody(player, origin, originPos);
 		if (body == null) {
 			BreachMod.LOGGER.warn("Failed to spawn fallen body for {} — continuing downed flow without body", player.getGameProfile().name());
@@ -58,11 +95,12 @@ public final class DownedController {
 		player.setHealth(player.getMaxHealth());
 		applyDownedEffects(player);
 		ChallengeInstanceManager.ensureInstance(player);
-		ChallengeInstanceManager.teleportToChallenge(player, new ReturnLocation(origin.dimension(), originPos));
+		ChallengeInstanceManager.teleportToChallenge(player);
 
 		player.sendSystemMessage(Component.literal("You are downed. Right-click the red block in the challenge to revive, or wait for rescue."));
 		broadcastNearby(origin, originPos, DownedPresentationS2CPayload.Cue.PLAYER_DOWNED, player.getUUID(), null);
 		BreachNetworking.sendDownedPresentation(player, DownedPresentationS2CPayload.Cue.PLAYER_DOWNED, player.getUUID(), null);
+		BreachMod.LOGGER.info("Started downed state for {} at {} {}", player.getGameProfile().name(), origin.dimension().identifier(), originPos);
 	}
 
 	public static void fieldRevive(ServerPlayer player, Vec3 returnPos, ServerLevel returnLevel, DownedPresentationS2CPayload.Cue cue, ServerPlayer medic) {
@@ -155,6 +193,18 @@ public final class DownedController {
 		clearDownedEffects(player);
 		CarryAttachment.setCarrying(player, false);
 		player.removeEffect(MobEffects.SLOWNESS);
+	}
+
+	public static void clearDowned(ServerPlayer player) {
+		DownedData data = DownedAttachment.get(player);
+		if (!data.isDowned()) {
+			return;
+		}
+		removeBody(player);
+		data.clearDownedState();
+		DownedAttachment.set(player, data);
+		clearDownedEffects(player);
+		player.setHealth(player.getMaxHealth());
 	}
 
 	public static void tickDownedPlayer(ServerPlayer player) {

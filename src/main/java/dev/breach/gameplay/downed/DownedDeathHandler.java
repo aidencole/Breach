@@ -21,19 +21,36 @@ public final class DownedDeathHandler {
 		if (!(entity instanceof ServerPlayer player)) {
 			return true;
 		}
-		if (DownedAttachment.get(player).isDowned() || PENDING.contains(player.getUUID())) {
+
+		player.setHealth(player.getMaxHealth());
+
+		if (DownedAttachment.get(player).isDowned()) {
+			DownedController.ensureInChallenge(player);
 			return false;
 		}
 
-		player.setHealth(player.getMaxHealth());
+		if (PENDING.contains(player.getUUID())) {
+			return false;
+		}
+
 		scheduleDown(player);
 		BreachMod.LOGGER.info("Intercepted lethal damage for {} — scheduling downed state", player.getGameProfile().name());
 		return false;
 	}
 
 	public static void tick(ServerPlayer player) {
-		if (player.getHealth() <= 0.0F && !DownedAttachment.get(player).isDowned() && !PENDING.contains(player.getUUID())) {
-			player.setHealth(player.getMaxHealth());
+		if (player.getHealth() > 0.0F) {
+			return;
+		}
+
+		player.setHealth(player.getMaxHealth());
+
+		if (DownedAttachment.get(player).isDowned()) {
+			DownedController.ensureInChallenge(player);
+			return;
+		}
+
+		if (!PENDING.contains(player.getUUID())) {
 			scheduleDown(player);
 			BreachMod.LOGGER.warn("Fallback downed trigger for {} at 0 health", player.getGameProfile().name());
 		}
@@ -52,11 +69,22 @@ public final class DownedDeathHandler {
 
 		server.execute(() -> {
 			try {
-				if (player.isRemoved() || DownedAttachment.get(player).isDowned()) {
+				if (player.isRemoved()) {
+					BreachMod.LOGGER.warn("Skipped downed for {} because player was removed", player.getGameProfile().name());
 					return;
 				}
+
 				player.setHealth(player.getMaxHealth());
+
+				if (DownedAttachment.get(player).isDowned()) {
+					DownedController.ensureInChallenge(player);
+					return;
+				}
+
 				DownedController.downPlayer(player);
+			} catch (Exception exception) {
+				BreachMod.LOGGER.error("Failed to start downed state for {}", player.getGameProfile().name(), exception);
+				player.sendSystemMessage(net.minecraft.network.chat.Component.literal("Downed system failed — tell an admin."));
 			} finally {
 				PENDING.remove(id);
 			}

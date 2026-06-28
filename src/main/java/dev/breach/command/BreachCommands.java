@@ -69,6 +69,13 @@ public final class BreachCommands {
 							DownedController.downPlayer(player);
 							ctx.getSource().sendSuccess(() -> Component.literal("Triggered downed state."), true);
 							return 1;
+						}))
+				.then(Commands.literal("reset")
+						.executes(ctx -> {
+							ServerPlayer player = ctx.getSource().getPlayerOrException();
+							DownedController.clearDowned(player);
+							ctx.getSource().sendSuccess(() -> Component.literal("Cleared downed state."), true);
+							return 1;
 						})));
 	}
 }

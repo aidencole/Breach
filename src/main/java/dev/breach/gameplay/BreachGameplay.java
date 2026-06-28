@@ -5,6 +5,7 @@ import dev.breach.BreachMod;
 import dev.breach.command.BreachCommands;
 import dev.breach.gameplay.downed.DownedAttachment;
 import dev.breach.gameplay.downed.DownedController;
+import dev.breach.gameplay.downed.DownedData;
 import dev.breach.gameplay.downed.DownedDeathHandler;
 import dev.breach.gameplay.injury.InjuryAttachment;
 import dev.breach.gameplay.injury.InjuryManager;
@@ -59,6 +60,13 @@ public final class BreachGameplay {
 
 		ServerLivingEntityEvents.ALLOW_DEATH.register(DownedDeathHandler::tryInterceptDeath);
 
+		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+			ServerPlayer player = handler.player;
+			if (DownedAttachment.get(player).isDowned()) {
+				server.execute(() -> DownedController.ensureInChallenge(player));
+			}
+		});
+
 		ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
 			if (handler.player instanceof ServerPlayer player) {
 				DownedController.onPlayerLogout(player);
@@ -67,7 +75,7 @@ public final class BreachGameplay {
 
 		ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> {
 			if (!alive) {
-				newPlayer.setAttached(DownedAttachment.DOWNED, oldPlayer.getAttachedOrCreate(DownedAttachment.DOWNED));
+				newPlayer.setAttached(DownedAttachment.DOWNED, DownedData.createDefault());
 			}
 		});
 
