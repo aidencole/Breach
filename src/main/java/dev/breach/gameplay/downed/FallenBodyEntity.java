@@ -43,8 +43,8 @@ public class FallenBodyEntity extends Mob {
 			EntityDataSerializers.BYTE
 	);
 
-	private UUID ownerUuid = UUID.randomUUID();
-	private String ownerName = "Unknown";
+	private UUID ownerUuid;
+	private String ownerName = "";
 	private double smoothX;
 	private double smoothY;
 	private double smoothZ;
@@ -71,11 +71,18 @@ public class FallenBodyEntity extends Mob {
 	}
 
 	public UUID getOwnerUuid() {
+		if (ownerUuid == null) {
+			String raw = entityData.get(OWNER_ID);
+			if (!raw.isEmpty()) {
+				ownerUuid = UUID.fromString(raw);
+			}
+		}
 		return ownerUuid;
 	}
 
 	public String getOwnerName() {
-		return ownerName;
+		String synced = entityData.get(OWNER_NAME);
+		return synced.isEmpty() ? ownerName : synced;
 	}
 
 	public FallenBodyPhase getBodyPhase() {
@@ -124,8 +131,8 @@ public class FallenBodyEntity extends Mob {
 	protected void defineSynchedData(SynchedEntityData.Builder builder) {
 		super.defineSynchedData(builder);
 		builder.define(CARRIER_ID, "");
-		builder.define(OWNER_ID, ownerUuid.toString());
-		builder.define(OWNER_NAME, ownerName);
+		builder.define(OWNER_ID, "");
+		builder.define(OWNER_NAME, "");
 		builder.define(BODY_PHASE, (byte) FallenBodyPhase.GROUND.ordinal());
 	}
 
@@ -189,9 +196,12 @@ public class FallenBodyEntity extends Mob {
 	@Override
 	protected void readAdditionalSaveData(ValueInput input) {
 		super.readAdditionalSaveData(input);
-		ownerUuid = UUID.fromString(input.getStringOr("Owner", ownerUuid.toString()));
-		ownerName = input.getStringOr("OwnerName", ownerName);
-		entityData.set(OWNER_ID, ownerUuid.toString());
+		String ownerId = input.getStringOr("Owner", "");
+		if (!ownerId.isEmpty()) {
+			ownerUuid = UUID.fromString(ownerId);
+			entityData.set(OWNER_ID, ownerId);
+		}
+		ownerName = input.getStringOr("OwnerName", "");
 		entityData.set(OWNER_NAME, ownerName);
 		input.getString("Carrier").ifPresent(value -> entityData.set(CARRIER_ID, value));
 	}
@@ -199,8 +209,10 @@ public class FallenBodyEntity extends Mob {
 	@Override
 	protected void addAdditionalSaveData(ValueOutput output) {
 		super.addAdditionalSaveData(output);
-		output.putString("Owner", ownerUuid.toString());
-		output.putString("OwnerName", ownerName);
+		if (ownerUuid != null) {
+			output.putString("Owner", ownerUuid.toString());
+		}
+		output.putString("OwnerName", getOwnerName());
 		getCarrierUuid().ifPresent(id -> output.putString("Carrier", id.toString()));
 	}
 }
