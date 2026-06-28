@@ -8,15 +8,20 @@ Full path in this project:
 
   src/main/resources/assets/breach/geckolib/models/entity/fallen_body_wide.geo.json
 
-Blockbench export settings:
+Blockbench setup:
   - Format: GeckoLib Animated Model
   - Mod ID: breach
   - Object ID: fallen_body_wide
+  - Pose the model lying on the ground in Blockbench (the mod does not rotate limbs)
+  - Put the root bone origin at ground level
+  - Default facing in Blockbench should match Minecraft south (-Z)
 
-The bundled file is a flat placeholder with standard player UV layout.
-Replace it with your custom wide-body model when ready.
+The bundled file is a flat placeholder. Replace it with your custom model.
 
-After copying the file, rebuild the mod and run:
-  /breach body
+Test commands (OP):
+  /breach model   spawns the geo model 1.5 blocks ahead of you
+  /breach body    spawns at your feet
 
-Also install GeckoLib 5.5.3+ for Minecraft 26.2 in your mods folder when testing outside the dev environment.
+Both only set position + yaw. All pose/orientation comes from your geo file.
+
+Install GeckoLib 5.5.3+ for Minecraft 26.2 when testing outside the dev environment.

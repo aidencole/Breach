@@ -6,7 +6,6 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import dev.breach.BreachFeatures;
 import dev.breach.content.block.BreachBlocks;
 import dev.breach.content.item.BreachItems;
-import dev.breach.content.entity.BreachEntities;
 import dev.breach.gameplay.downed.DownedController;
 import dev.breach.gameplay.downed.FallenBodyEntity;
 import dev.breach.gameplay.injury.BodyPart;
@@ -15,9 +14,11 @@ import dev.breach.gameplay.injury.InjuryManager;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.permissions.Permission;
 import net.minecraft.server.permissions.PermissionLevel;
+import net.minecraft.world.phys.Vec3;
 
 public final class BreachCommands {
 	private BreachCommands() {
@@ -80,18 +81,28 @@ public final class BreachCommands {
 							return 1;
 						}))
 				.then(Commands.literal("body")
-						.executes(ctx -> {
-							ServerPlayer player = ctx.getSource().getPlayerOrException();
-							FallenBodyEntity body = new FallenBodyEntity(BreachEntities.FALLEN_BODY, player.level());
-							body.setOwner(player);
-							body.snapToGround(player.position());
-							body.setYRot(player.getYRot());
-							if (player.level().addFreshEntity(body)) {
-								ctx.getSource().sendSuccess(() -> Component.literal("Spawned test fallen body."), true);
-								return 1;
-							}
-							ctx.getSource().sendFailure(Component.literal("Failed to spawn fallen body."));
-							return 0;
-						})));
+						.executes(ctx -> spawnTestBody(ctx.getSource(), ctx.getSource().getPlayerOrException(), false)))
+				.then(Commands.literal("model")
+						.executes(ctx -> spawnTestBody(ctx.getSource(), ctx.getSource().getPlayerOrException(), true))));
+	}
+
+	private static int spawnTestBody(CommandSourceStack source, ServerPlayer player, boolean inFront) {
+		ServerLevel level = (ServerLevel) player.level();
+		Vec3 pos = player.position();
+		if (inFront) {
+			Vec3 look = player.getForward();
+			pos = pos.add(look.x * 1.5, 0.0, look.z * 1.5);
+		}
+		FallenBodyEntity body = FallenBodyEntity.spawnModel(level, player, pos, player.getYRot());
+		if (body != null) {
+			source.sendSuccess(() -> Component.literal(
+					inFront
+							? "Spawned model ahead. Pose comes from your Blockbench geo file; code only sets yaw."
+							: "Spawned model at your feet. Pose comes from your Blockbench geo file; code only sets yaw."
+			), true);
+			return 1;
+		}
+		source.sendFailure(Component.literal("Failed to spawn fallen body."));
+		return 0;
 	}
 }

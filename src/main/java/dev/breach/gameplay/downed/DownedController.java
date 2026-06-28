@@ -233,8 +233,8 @@ public final class DownedController {
 
 		FallenBodyEntity body = new FallenBodyEntity(BreachEntities.FALLEN_BODY, level);
 		body.setOwner(player);
-		body.snapToGround(pos);
-		body.setYRot(player.getYRot());
+		body.alignFacing(player.getYRot());
+		body.placeOnSurface(pos);
 		if (!level.addFreshEntity(body)) {
 			BreachMod.LOGGER.warn("addFreshEntity failed for fallen body of {} at {}", player.getGameProfile().name(), blockPos);
 			return null;

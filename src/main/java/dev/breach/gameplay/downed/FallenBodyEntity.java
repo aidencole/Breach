@@ -4,6 +4,7 @@ import com.geckolib.animatable.GeoEntity;
 import com.geckolib.animatable.instance.AnimatableInstanceCache;
 import com.geckolib.animatable.manager.AnimatableManager;
 import com.geckolib.util.GeckoLibUtil;
+import dev.breach.content.entity.BreachEntities;
 import dev.breach.gameplay.medical.MedkitItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -132,13 +133,36 @@ public class FallenBodyEntity extends Mob implements GeoEntity {
 		if (level().isClientSide()) {
 			return;
 		}
-		BlockPos below = BlockPos.containing(pos.x, pos.y - 0.05, pos.z);
-		double groundY = below.getY() + 1.0 + 0.02;
+		placeOnSurface(pos);
+	}
+
+	public void placeOnSurface(Vec3 pos) {
+		BlockPos surface = BlockPos.containing(pos.x, pos.y - 0.01, pos.z);
+		double groundY = surface.getY() + 1.0;
 		setPos(pos.x, groundY, pos.z);
+		setXRot(0.0f);
 		smoothX = pos.x;
 		smoothY = groundY;
 		smoothZ = pos.z;
 		initialized = true;
+	}
+
+	public void alignFacing(float yRot) {
+		setYRot(yRot);
+		setYBodyRot(yRot);
+		setYHeadRot(yRot);
+		setXRot(0.0f);
+	}
+
+	public static FallenBodyEntity spawnModel(ServerLevel level, ServerPlayer owner, Vec3 pos, float yRot) {
+		FallenBodyEntity body = new FallenBodyEntity(BreachEntities.FALLEN_BODY, level);
+		body.setOwner(owner);
+		body.alignFacing(yRot);
+		body.placeOnSurface(pos);
+		if (!level.addFreshEntity(body)) {
+			return null;
+		}
+		return body;
 	}
 
 	@Override
