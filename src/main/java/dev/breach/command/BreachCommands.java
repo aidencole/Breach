@@ -6,7 +6,9 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import dev.breach.BreachFeatures;
 import dev.breach.content.block.BreachBlocks;
 import dev.breach.content.item.BreachItems;
+import dev.breach.content.entity.BreachEntities;
 import dev.breach.gameplay.downed.DownedController;
+import dev.breach.gameplay.downed.FallenBodyEntity;
 import dev.breach.gameplay.injury.BodyPart;
 import dev.breach.gameplay.injury.InjuryAttachment;
 import dev.breach.gameplay.injury.InjuryManager;
@@ -76,6 +78,20 @@ public final class BreachCommands {
 							DownedController.clearDowned(player);
 							ctx.getSource().sendSuccess(() -> Component.literal("Cleared downed state."), true);
 							return 1;
+						}))
+				.then(Commands.literal("body")
+						.executes(ctx -> {
+							ServerPlayer player = ctx.getSource().getPlayerOrException();
+							FallenBodyEntity body = new FallenBodyEntity(BreachEntities.FALLEN_BODY, player.level());
+							body.setOwner(player);
+							body.snapToGround(player.position());
+							body.setYRot(player.getYRot());
+							if (player.level().addFreshEntity(body)) {
+								ctx.getSource().sendSuccess(() -> Component.literal("Spawned test fallen body."), true);
+								return 1;
+							}
+							ctx.getSource().sendFailure(Component.literal("Failed to spawn fallen body."));
+							return 0;
 						})));
 	}
 }

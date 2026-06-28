@@ -1,5 +1,9 @@
 package dev.breach.gameplay.downed;
 
+import com.geckolib.animatable.GeoEntity;
+import com.geckolib.animatable.instance.AnimatableInstanceCache;
+import com.geckolib.animatable.manager.AnimatableManager;
+import com.geckolib.util.GeckoLibUtil;
 import dev.breach.gameplay.medical.MedkitItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -25,7 +29,8 @@ import net.minecraft.world.phys.Vec3;
 import java.util.Optional;
 import java.util.UUID;
 
-public class FallenBodyEntity extends Mob {
+public class FallenBodyEntity extends Mob implements GeoEntity {
+	private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
 	private static final EntityDataAccessor<String> CARRIER_ID = SynchedEntityData.defineId(
 			FallenBodyEntity.class,
 			EntityDataSerializers.STRING
@@ -60,6 +65,15 @@ public class FallenBodyEntity extends Mob {
 
 	public static AttributeSupplier.Builder createAttributes() {
 		return Mob.createMobAttributes();
+	}
+
+	@Override
+	public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+	}
+
+	@Override
+	public AnimatableInstanceCache getAnimatableInstanceCache() {
+		return geoCache;
 	}
 
 	public void setOwner(ServerPlayer player) {

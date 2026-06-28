@@ -3,6 +3,7 @@ package dev.breach.client;
 import dev.breach.BreachFeatures;
 import dev.breach.BreachMod;
 import dev.breach.client.downed.DownedClientEffects;
+import dev.breach.client.downed.FallenBodyGeoRenderer;
 import dev.breach.client.downed.FallenBodyRenderer;
 import dev.breach.client.injury.BodyHudOverlay;
 import dev.breach.content.entity.BreachEntities;
@@ -25,7 +26,11 @@ public final class BreachClient implements ClientModInitializer {
 
 		BreachNetworking.registerClientReceivers();
 
-		EntityRendererRegistry.register(BreachEntities.FALLEN_BODY, FallenBodyRenderer::new);
+		if (BreachFeatures.GECKOLIB_FALLEN_BODY) {
+			EntityRendererRegistry.register(BreachEntities.FALLEN_BODY, FallenBodyGeoRenderer::new);
+		} else {
+			EntityRendererRegistry.register(BreachEntities.FALLEN_BODY, FallenBodyRenderer::new);
+		}
 
 		if (BreachFeatures.DOWNED_SYSTEM_ENABLED) {
 			ClientPlayNetworking.registerGlobalReceiver(DownedPresentationS2CPayload.TYPE, (payload, context) -> {
