@@ -26,7 +26,7 @@ public final class BreachEntities {
 		Identifier id = BreachMod.id("fallen_body");
 		ResourceKey<EntityType<?>> key = ResourceKey.create(Registries.ENTITY_TYPE, id);
 		EntityType<FallenBodyEntity> type = EntityType.Builder.of(FallenBodyEntity::new, MobCategory.MISC)
-				.sized(0.6f, 0.2f)
+				.sized(0.8f, 0.5f)
 				.clientTrackingRange(64)
 				.updateInterval(5)
 				.build(key);
