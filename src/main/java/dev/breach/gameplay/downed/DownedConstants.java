@@ -11,8 +11,6 @@ public final class DownedConstants {
 	 * still look too small in-game.
 	 */
 	public static final float FALLEN_BODY_GEO_SCALE = 1.875f;
-	/** Slight inflation for jacket/hat overlay bones, matching vanilla player outer layers. */
-	public static final float FALLEN_BODY_OUTER_LAYER_INFLATE = 1.0625f;
 
 	private DownedConstants() {
 	}

@@ -13,13 +13,6 @@ Blockbench export:
   - Object ID: fallen_body_wide  (or fallen_body_slim for the slim file)
 
 The mod picks wide vs slim automatically from the owner's Minecraft skin model.
-
-Outer layers (jacket, hat, sleeves, pants):
-  - Add overlay bones to your geo file using standard player outer UVs
-  - Name them with _outer suffix, outer_ prefix, or vanilla names:
-      hat, jacket, left_sleeve, right_sleeve, left_pants, right_pants
-  - The mod renders those bones in a second inflated pass with the same skin texture
-
-Inner/base bones render on the first pass. Pose comes entirely from your geo files.
+Pose comes entirely from your geo files.
 
 Test: /breach model
