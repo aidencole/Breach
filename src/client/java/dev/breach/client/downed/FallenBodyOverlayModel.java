@@ -17,28 +17,27 @@ public class FallenBodyOverlayModel extends PlayerModel {
 		}
 
 		this.resetPose();
-		this.hat.visible = overlayState.showHat;
-		this.jacket.visible = overlayState.showJacket;
-		this.leftPants.visible = overlayState.showLeftPants;
-		this.rightPants.visible = overlayState.showRightPants;
-		this.leftSleeve.visible = overlayState.showLeftSleeve;
-		this.rightSleeve.visible = overlayState.showRightSleeve;
-		hideBaseLayer();
-		FallenBodyPose.apply(this, overlayState.bodyPhase, overlayState.ageInTicks);
-	}
-
-	private void hideBaseLayer() {
+		this.body.visible = true;
+		this.head.visible = true;
+		this.leftArm.visible = true;
+		this.rightArm.visible = true;
+		this.leftLeg.visible = true;
+		this.rightLeg.visible = true;
+		this.hat.visible = true;
+		this.jacket.visible = true;
+		this.leftPants.visible = true;
+		this.rightPants.visible = true;
+		this.leftSleeve.visible = true;
+		this.rightSleeve.visible = true;
+		for (ModelPart part : this.allParts()) {
+			part.skipDraw = false;
+		}
 		this.head.skipDraw = true;
 		this.body.skipDraw = true;
 		this.leftArm.skipDraw = true;
 		this.rightArm.skipDraw = true;
 		this.leftLeg.skipDraw = true;
 		this.rightLeg.skipDraw = true;
-		this.hat.skipDraw = false;
-		this.jacket.skipDraw = false;
-		this.leftSleeve.skipDraw = false;
-		this.rightSleeve.skipDraw = false;
-		this.leftPants.skipDraw = false;
-		this.rightPants.skipDraw = false;
+		FallenBodyPose.apply(this, overlayState.bodyPhase, overlayState.ageInTicks);
 	}
 }

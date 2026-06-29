@@ -2,18 +2,29 @@ package dev.breach.client.downed;
 
 import com.geckolib.renderer.GeoEntityRenderer;
 import com.geckolib.renderer.base.GeoRenderState;
+import com.geckolib.renderer.base.RenderPassInfo;
 import dev.breach.gameplay.downed.DownedConstants;
 import dev.breach.gameplay.downed.FallenBodyEntity;
 import dev.breach.gameplay.downed.FallenBodyPhase;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class FallenBodyGeoRenderer extends GeoEntityRenderer<FallenBodyEntity, LivingEntityRenderState> {
+	private final FallenBodyOverlayRenderer overlayRenderer;
+
 	public FallenBodyGeoRenderer(EntityRendererProvider.Context context) {
 		super(context, new FallenBodyGeoModel());
+		this.overlayRenderer = new FallenBodyOverlayRenderer(context);
 		this.withScale(DownedConstants.FALLEN_BODY_GEO_SCALE);
 		this.shadowRadius = 0.25f;
-		this.withRenderLayer(renderer -> new FallenBodyOuterLayerGeoLayer(context, (FallenBodyGeoRenderer) renderer));
+	}
+
+	@Override
+	public void applyRenderLayers(RenderPassInfo pass, SubmitNodeCollector collector) {
+		super.applyRenderLayers(pass, collector);
+		this.overlayRenderer.render(pass, collector);
 	}
 
 	@Override
