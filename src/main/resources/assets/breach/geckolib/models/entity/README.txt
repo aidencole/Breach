@@ -1,4 +1,4 @@
-Your Blockbench model goes here — the mod renders it exactly as exported.
+Put your Blockbench export here:
 
   fallen_body_wide.geo.json
 
@@ -6,14 +6,12 @@ Full path:
 
   src/main/resources/assets/breach/geckolib/models/entity/fallen_body_wide.geo.json
 
+NOT assets/breach/models/entity/ — that folder is for vanilla JSON models.
+GeckoLib will show a magenta/black cube if the file is in the wrong place.
+
 Blockbench export:
   - Format: GeckoLib Animated Model
   - Mod ID: breach
   - Object ID: fallen_body_wide
 
-The mod only applies your player skin as the texture. Pose, scale, and bone
-layout come entirely from your geo file. Rebuild after copying the export.
-
-Test: /breach model
-
-If you see a black/magenta cube, this file is missing or named wrong.
+Rebuild after adding the file, then test with: /breach model
