@@ -35,9 +35,13 @@ public class FallenBodyGeoRenderer extends GeoEntityRenderer<FallenBodyEntity, L
 		state.isBaby = false;
 
 		GeoRenderState geoState = (GeoRenderState) state;
+		java.util.UUID ownerUuid = entity.getOwnerUuid();
+		String ownerName = entity.getOwnerName();
+		geoState.addGeckolibData(FallenBodyGeoModel.OWNER_UUID, ownerUuid);
+		geoState.addGeckolibData(FallenBodyGeoModel.OWNER_NAME, ownerName);
 		geoState.addGeckolibData(
 				FallenBodyGeoModel.SKIN_PROFILE,
-				FallenBodySkinCache.resolve(entity.getOwnerUuid(), entity.getOwnerName())
+				FallenBodySkinCache.resolve(ownerUuid, ownerName)
 		);
 		geoState.addGeckolibData(FallenBodyGeoModel.BODY_PHASE, entity.getBodyPhase());
 		this.shadowRadius = entity.getBodyPhase() == FallenBodyPhase.CARRIED ? 0.05f : 0.25f;

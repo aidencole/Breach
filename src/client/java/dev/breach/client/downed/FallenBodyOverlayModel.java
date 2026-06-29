@@ -17,27 +17,23 @@ public class FallenBodyOverlayModel extends PlayerModel {
 		}
 
 		this.resetPose();
-		this.body.visible = true;
-		this.head.visible = true;
-		this.leftArm.visible = true;
-		this.rightArm.visible = true;
-		this.leftLeg.visible = true;
-		this.rightLeg.visible = true;
 		this.hat.visible = true;
 		this.jacket.visible = true;
 		this.leftPants.visible = true;
 		this.rightPants.visible = true;
 		this.leftSleeve.visible = true;
 		this.rightSleeve.visible = true;
-		for (ModelPart part : this.allParts()) {
-			part.skipDraw = false;
-		}
-		this.head.skipDraw = true;
-		this.body.skipDraw = true;
-		this.leftArm.skipDraw = true;
-		this.rightArm.skipDraw = true;
-		this.leftLeg.skipDraw = true;
-		this.rightLeg.skipDraw = true;
 		FallenBodyPose.apply(this, overlayState.bodyPhase, overlayState.ageInTicks);
+		inflateOverlayParts();
+	}
+
+	private void inflateOverlayParts() {
+		float scale = 1.02f;
+		this.hat.xScale = this.hat.yScale = this.hat.zScale = scale;
+		this.jacket.xScale = this.jacket.yScale = this.jacket.zScale = scale;
+		this.leftSleeve.xScale = this.leftSleeve.yScale = this.leftSleeve.zScale = scale;
+		this.rightSleeve.xScale = this.rightSleeve.yScale = this.rightSleeve.zScale = scale;
+		this.leftPants.xScale = this.leftPants.yScale = this.leftPants.zScale = scale;
+		this.rightPants.xScale = this.rightPants.yScale = this.rightPants.zScale = scale;
 	}
 }

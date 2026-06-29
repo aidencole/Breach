@@ -12,6 +12,8 @@ import net.minecraft.world.entity.player.PlayerModelType;
 public class FallenBodyGeoModel extends DefaultedEntityGeoModel<FallenBodyEntity> {
 	public static final DataTicket<FallenBodySkinProfile> SKIN_PROFILE = DataTicket.create("skin_profile", FallenBodySkinProfile.class);
 	public static final DataTicket<FallenBodyPhase> BODY_PHASE = DataTicket.create("body_phase", FallenBodyPhase.class);
+	public static final DataTicket<java.util.UUID> OWNER_UUID = DataTicket.create("owner_uuid", java.util.UUID.class);
+	public static final DataTicket<String> OWNER_NAME = DataTicket.create("owner_name", String.class);
 
 	private static final Identifier WIDE_MODEL = BreachMod.id("entity/fallen_body_wide");
 	private static final Identifier SLIM_MODEL = BreachMod.id("entity/fallen_body_slim");
