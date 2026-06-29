@@ -11,6 +11,8 @@ public final class DownedConstants {
 	 * still look too small in-game.
 	 */
 	public static final float FALLEN_BODY_GEO_SCALE = 1.875f;
+	/** Vanilla player model scale used by the non-GeckoLib fallback renderer. */
+	public static final float FALLEN_BODY_VANILLA_MODEL_SCALE = 0.9375f;
 
 	private DownedConstants() {
 	}
