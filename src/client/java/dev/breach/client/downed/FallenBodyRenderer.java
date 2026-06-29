@@ -31,7 +31,7 @@ public class FallenBodyRenderer extends HumanoidMobRenderer<FallenBodyEntity, Fa
 
 	@Override
 	public Identifier getTextureLocation(FallenBodyRenderState state) {
-		return FallenBodySkinCache.resolve(state.ownerUuid, state.ownerName);
+		return FallenBodySkinCache.resolve(state.ownerUuid, state.ownerName).texture();
 	}
 
 	@Override
