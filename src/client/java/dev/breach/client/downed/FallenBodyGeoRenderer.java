@@ -13,6 +13,7 @@ public class FallenBodyGeoRenderer extends GeoEntityRenderer<FallenBodyEntity, L
 		super(context, new FallenBodyGeoModel());
 		this.withScale(DownedConstants.FALLEN_BODY_GEO_SCALE);
 		this.shadowRadius = 0.25f;
+		this.withRenderLayer(renderer -> new FallenBodyOuterLayerGeoLayer(context, (FallenBodyGeoRenderer) renderer));
 	}
 
 	@Override
@@ -27,6 +28,7 @@ public class FallenBodyGeoRenderer extends GeoEntityRenderer<FallenBodyEntity, L
 				FallenBodyGeoModel.SKIN_PROFILE,
 				FallenBodySkinCache.resolve(entity.getOwnerUuid(), entity.getOwnerName())
 		);
+		geoState.addGeckolibData(FallenBodyGeoModel.BODY_PHASE, entity.getBodyPhase());
 		this.shadowRadius = entity.getBodyPhase() == FallenBodyPhase.CARRIED ? 0.05f : 0.25f;
 	}
 }

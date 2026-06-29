@@ -1,6 +1,7 @@
 package dev.breach.client.downed;
 
 import com.mojang.math.Axis;
+import dev.breach.gameplay.downed.DownedConstants;
 import dev.breach.gameplay.downed.FallenBodyEntity;
 import dev.breach.gameplay.downed.FallenBodyPhase;
 import net.minecraft.client.model.geom.ModelLayers;
@@ -47,7 +48,7 @@ public class FallenBodyRenderer extends HumanoidMobRenderer<FallenBodyEntity, Fa
 
 	@Override
 	protected void scale(FallenBodyRenderState state, PoseStack poseStack) {
-		float scale = 0.9375f;
+		float scale = DownedConstants.FALLEN_BODY_VANILLA_MODEL_SCALE;
 		poseStack.scale(scale, scale, scale);
 	}
 
