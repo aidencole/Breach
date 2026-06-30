@@ -1,0 +1,20 @@
+name: FreakingRPG
+version: '${version}'
+main: dev.freakingrpg.FreakingRpgPlugin
+api-version: '26.2'
+description: A full-fledged RPG experience built on Paper plugins and datapacks.
+authors: [Freaking RPG Team]
+
+commands:
+  frpg:
+    description: Main command for Freaking RPG.
+    usage: /frpg [help|reload]
+    permission: freakingrpg.command.frpg
+
+permissions:
+  freakingrpg.command.frpg:
+    description: Allows use of /frpg.
+    default: true
+  freakingrpg.admin:
+    description: Allows admin actions like reload.
+    default: op
